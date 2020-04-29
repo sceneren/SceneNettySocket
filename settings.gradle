@@ -1,0 +1,4 @@
+rootProject.name='SceneNettySocketDemo'
+include ':app'
+include ':SceneNettySocket'
+
