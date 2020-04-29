@@ -31,14 +31,14 @@ android {
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
     api 'androidx.appcompat:appcompat:1.1.0'
-    api files('libs/netty-all-4.1.23.Final.jar')
+    implementation files('libs/netty-all-4.1.23.Final.jar')
 }
 
 publish {
     userOrg = 'scene'
     groupId = 'wiki.scene.socket'
     artifactId = 'SceneNettySocket'
-    publishVersion = '1.0.0'
+    publishVersion = '1.0.1'
     desc = 'xxxxx'
 //    website = 'https://github.com/sunfusheng/GlideImageView'
 }
