@@ -16,27 +16,37 @@ import wiki.scene.socket.status.ConnectState;
 public class NettyClientHandler extends SimpleChannelInboundHandler<String> {
 
     private static final String TAG = "NettyClientHandler";
-    private final boolean isSendheartBeat;
+    private final boolean isSendHeartBeat;
     private NettyClientListener listener;
     private int index;
     private Object heartBeatData;
     private String packetSeparator;
+    private String startPacketSeparator;
 
     //    private static final ByteBuf HEARTBEAT_SEQUENCE = Unpooled.unreleasableBuffer(Unpooled.copiedBuffer("Heartbeat"+System.getProperty("line.separator"),
 //            CharsetUtil.UTF_8));
     byte[] requestBody = {(byte) 0xFE, (byte) 0xED, (byte) 0xFE, 5, 4, (byte) 0xFF, 0x0a};
 
 
-    public NettyClientHandler(NettyClientListener listener, int index, boolean isSendheartBeat, Object heartBeatData) {
-        this(listener, index, isSendheartBeat, heartBeatData, null);
+    public NettyClientHandler(NettyClientListener listener, int index, boolean isSendHeartBeat, Object heartBeatData) {
+        this(listener, index, isSendHeartBeat, heartBeatData, null);
     }
 
-    public NettyClientHandler(NettyClientListener listener, int index, boolean isSendheartBeat, Object heartBeatData, String separator) {
+    public NettyClientHandler(NettyClientListener listener, int index, boolean isSendHeartBeat, Object heartBeatData, String separator) {
         this.listener = listener;
         this.index = index;
-        this.isSendheartBeat = isSendheartBeat;
+        this.isSendHeartBeat = isSendHeartBeat;
         this.heartBeatData = heartBeatData;
         this.packetSeparator = TextUtils.isEmpty(separator) ? System.getProperty("line.separator") : separator;
+    }
+
+    public NettyClientHandler(NettyClientListener listener, int index, boolean isSendHeartBeat, Object heartBeatData, String separator, String startPacketSeparator) {
+        this.listener = listener;
+        this.index = index;
+        this.isSendHeartBeat = isSendHeartBeat;
+        this.heartBeatData = heartBeatData;
+        this.packetSeparator = TextUtils.isEmpty(separator) ? System.getProperty("line.separator") : separator;
+        this.startPacketSeparator = TextUtils.isEmpty(startPacketSeparator) ? "" : startPacketSeparator;
     }
 
     /**
@@ -51,16 +61,13 @@ public class NettyClientHandler extends SimpleChannelInboundHandler<String> {
         if (evt instanceof IdleStateEvent) {
             IdleStateEvent event = (IdleStateEvent) evt;
             if (event.state() == IdleState.WRITER_IDLE) {   //发送心跳
-//                ctx.channel().writeAndFlush("Heartbeat" + System.getProperty("line.separator"));
-                if (isSendheartBeat) {
+                if (isSendHeartBeat) {
                     if (heartBeatData == null) {
-                        ctx.channel().writeAndFlush("Heartbeat" + packetSeparator);
+                        ctx.channel().writeAndFlush(startPacketSeparator + "Heartbeat" + packetSeparator);
                     } else {
                         if (heartBeatData instanceof String) {
-//                            Log.d(TAG, "userEventTriggered: String");
-                            ctx.channel().writeAndFlush(heartBeatData + packetSeparator);
+                            ctx.channel().writeAndFlush(startPacketSeparator + heartBeatData + packetSeparator);
                         } else if (heartBeatData instanceof byte[]) {
-//                            Log.d(TAG, "userEventTriggered: byte");
                             ByteBuf buf = Unpooled.copiedBuffer((byte[]) heartBeatData);
                             ctx.channel().writeAndFlush(buf);
                         } else {
@@ -82,7 +89,6 @@ public class NettyClientHandler extends SimpleChannelInboundHandler<String> {
     @Override
     public void channelActive(ChannelHandlerContext ctx) {
         Log.e(TAG, "channelActive");
-//        NettyTcpClient.getInstance().setConnectStatus(true);
         listener.onClientStatusConnectChanged(ConnectState.STATUS_CONNECT_SUCCESS, index);
     }
 
@@ -94,9 +100,6 @@ public class NettyClientHandler extends SimpleChannelInboundHandler<String> {
     @Override
     public void channelInactive(ChannelHandlerContext ctx) {
         Log.e(TAG, "channelInactive");
-//        NettyTcpClient.getInstance().setConnectStatus(false);
-//        listener.onServiceStatusConnectChanged(NettyClientListener.STATUS_CONNECT_CLOSED);
-        // NettyTcpClient.getInstance().reconnect();
     }
 
     /**

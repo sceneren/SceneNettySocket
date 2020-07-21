@@ -255,7 +255,7 @@ public class NettyTcpClient {
                 @Override
                 public void operationComplete(ChannelFuture channelFuture) throws Exception {
                     if (listener != null) {
-                        listener.isSendSuccss(channelFuture.isSuccess());
+                        listener.isSendSuccess(channelFuture.isSuccess());
                     }
                 }
             });
@@ -297,7 +297,7 @@ public class NettyTcpClient {
             channel.writeAndFlush(buf).addListener(new ChannelFutureListener() {
                 @Override
                 public void operationComplete(ChannelFuture channelFuture) throws Exception {
-                    listener.isSendSuccss(channelFuture.isSuccess());
+                    listener.isSendSuccess(channelFuture.isSuccess());
                 }
             });
         }
