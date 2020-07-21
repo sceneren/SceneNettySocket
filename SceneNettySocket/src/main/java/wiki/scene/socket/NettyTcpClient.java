@@ -68,7 +68,7 @@ public class NettyTcpClient {
     /**
      * 是否发送心跳
      */
-    private boolean isSendheartBeat = false;
+    private boolean isSendHeartBeat = false;
 
     /**
      * 心跳数据，可以是String类型，也可以是byte[].
@@ -76,10 +76,15 @@ public class NettyTcpClient {
     private Object heartBeatData;
 
     private String packetSeparator;
+    private String startPacketSeparator;
     private int maxPacketLong = 1024;
 
     private void setPacketSeparator(String separator) {
         this.packetSeparator = separator;
+    }
+
+    public void setStartPacketSeparator(String startPacketSeparator) {
+        startPacketSeparator = startPacketSeparator;
     }
 
     private void setMaxPacketLong(int maxPacketLong) {
@@ -116,8 +121,8 @@ public class NettyTcpClient {
         return heartBeatInterval;
     }
 
-    public boolean isSendheartBeat() {
-        return isSendheartBeat;
+    public boolean isSendHeartBeat() {
+        return isSendHeartBeat;
     }
 
     public void connect() {
@@ -150,11 +155,17 @@ public class NettyTcpClient {
                         .handler(new ChannelInitializer<SocketChannel>() {
                             @Override
                             public void initChannel(SocketChannel ch) throws Exception {
-                                if (isSendheartBeat) {
+                                if (isSendHeartBeat) {
                                     ch.pipeline().addLast("ping", new IdleStateHandler(0, heartBeatInterval, 0, TimeUnit.SECONDS));//5s未发送数据，回调userEventTriggered
                                 }
 
                                 //黏包处理,需要客户端、服务端配合
+
+                                if (!TextUtils.isEmpty(startPacketSeparator)) {
+                                    ByteBuf delimiter = Unpooled.buffer();
+                                    delimiter.writeBytes(startPacketSeparator.getBytes());
+                                    ch.pipeline().addFirst(new DelimiterBasedFrameDecoder(maxPacketLong, delimiter));
+                                }
 
                                 if (!TextUtils.isEmpty(packetSeparator)) {
                                     ByteBuf delimiter = Unpooled.buffer();
@@ -167,7 +178,7 @@ public class NettyTcpClient {
                                 ch.pipeline().addLast(new StringDecoder(CharsetUtil.UTF_8));
 
 
-                                ch.pipeline().addLast(new NettyClientHandler(listener, mIndex, isSendheartBeat, heartBeatData, packetSeparator));
+                                ch.pipeline().addLast(new NettyClientHandler(listener, mIndex, isSendHeartBeat, heartBeatData, packetSeparator));
                             }
                         });
 
@@ -238,7 +249,9 @@ public class NettyTcpClient {
         boolean flag = channel != null && isConnect;
         if (flag) {
             String separator = TextUtils.isEmpty(packetSeparator) ? System.getProperty("line.separator") : packetSeparator;
-            ChannelFuture channelFuture = channel.writeAndFlush(data + separator).addListener(new ChannelFutureListener() {
+            String startSeparator = TextUtils.isEmpty(startPacketSeparator) ? "" : startPacketSeparator;
+
+            ChannelFuture channelFuture = channel.writeAndFlush(startSeparator + data + separator).addListener(new ChannelFutureListener() {
                 @Override
                 public void operationComplete(ChannelFuture channelFuture) throws Exception {
                     if (listener != null) {
@@ -268,8 +281,9 @@ public class NettyTcpClient {
     public boolean sendMsgToServer(String data) {
         boolean flag = channel != null && isConnect;
         if (flag) {
+            String startSeparator = TextUtils.isEmpty(startPacketSeparator) ? "" : startPacketSeparator;
             String separator = TextUtils.isEmpty(packetSeparator) ? System.getProperty("line.separator") : packetSeparator;
-            ChannelFuture channelFuture = channel.writeAndFlush(data + separator).awaitUninterruptibly();
+            ChannelFuture channelFuture = channel.writeAndFlush(startSeparator + data + separator).awaitUninterruptibly();
             return channelFuture.isSuccess();
         }
         return false;
@@ -350,7 +364,7 @@ public class NettyTcpClient {
         /**
          * 是否发送心跳
          */
-        private boolean isSendheartBeat;
+        private boolean isSendHeartBeat;
         /**
          * 心跳时间间隔
          */
@@ -362,6 +376,7 @@ public class NettyTcpClient {
         private Object heartBeatData;
 
         private String packetSeparator;
+        private String startPacketSeparator;
         private int maxPacketLong = 1024;
 
         public Builder() {
@@ -371,6 +386,11 @@ public class NettyTcpClient {
 
         public Builder setPacketSeparator(String packetSeparator) {
             this.packetSeparator = packetSeparator;
+            return this;
+        }
+
+        public Builder setStartPacketSeparator(String startPacketSeparator) {
+            this.startPacketSeparator = startPacketSeparator;
             return this;
         }
 
@@ -411,8 +431,8 @@ public class NettyTcpClient {
             return this;
         }
 
-        public Builder setSendheartBeat(boolean isSendheartBeat) {
-            this.isSendheartBeat = isSendheartBeat;
+        public Builder setSendHeartBeat(boolean isSendHeartBeat) {
+            this.isSendHeartBeat = isSendHeartBeat;
             return this;
         }
 
@@ -426,10 +446,11 @@ public class NettyTcpClient {
             nettyTcpClient.MAX_CONNECT_TIMES = this.MAX_CONNECT_TIMES;
             nettyTcpClient.reconnectIntervalTime = this.reconnectIntervalTime;
             nettyTcpClient.heartBeatInterval = this.heartBeatInterval;
-            nettyTcpClient.isSendheartBeat = this.isSendheartBeat;
+            nettyTcpClient.isSendHeartBeat = this.isSendHeartBeat;
             nettyTcpClient.heartBeatData = this.heartBeatData;
             nettyTcpClient.packetSeparator = this.packetSeparator;
             nettyTcpClient.maxPacketLong = this.maxPacketLong;
+            nettyTcpClient.startPacketSeparator = this.startPacketSeparator;
             return nettyTcpClient;
         }
     }
