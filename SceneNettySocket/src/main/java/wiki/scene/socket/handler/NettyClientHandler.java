@@ -33,11 +33,7 @@ public class NettyClientHandler extends SimpleChannelInboundHandler<String> {
     }
 
     public NettyClientHandler(NettyClientListener listener, int index, boolean isSendHeartBeat, Object heartBeatData, String separator) {
-        this.listener = listener;
-        this.index = index;
-        this.isSendHeartBeat = isSendHeartBeat;
-        this.heartBeatData = heartBeatData;
-        this.packetSeparator = TextUtils.isEmpty(separator) ? System.getProperty("line.separator") : separator;
+        this(listener, index, isSendHeartBeat, heartBeatData, separator, null);
     }
 
     public NettyClientHandler(NettyClientListener listener, int index, boolean isSendHeartBeat, Object heartBeatData, String separator, String startPacketSeparator) {
