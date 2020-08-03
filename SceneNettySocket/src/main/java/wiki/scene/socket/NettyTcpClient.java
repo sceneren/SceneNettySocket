@@ -177,8 +177,7 @@ public class NettyTcpClient {
                                 ch.pipeline().addLast(new StringEncoder(CharsetUtil.UTF_8));
                                 ch.pipeline().addLast(new StringDecoder(CharsetUtil.UTF_8));
 
-
-                                ch.pipeline().addLast(new NettyClientHandler(listener, mIndex, isSendHeartBeat, heartBeatData, packetSeparator,startPacketSeparator));
+                                ch.pipeline().addLast(new NettyClientHandler(listener, mIndex, isSendHeartBeat, heartBeatData, packetSeparator, startPacketSeparator));
                             }
                         });
 
@@ -206,7 +205,9 @@ public class NettyTcpClient {
                     e.printStackTrace();
                 } finally {
                     isConnect = false;
-                    listener.onClientStatusConnectChanged(ConnectState.STATUS_CONNECT_CLOSED, mIndex);
+                    if(listener!=null){
+                        listener.onClientStatusConnectChanged(ConnectState.STATUS_CONNECT_CLOSED, mIndex);
+                    }
                     if (null != channelFuture) {
                         if (channelFuture.channel() != null && channelFuture.channel().isOpen()) {
                             channelFuture.channel().close();
@@ -297,7 +298,9 @@ public class NettyTcpClient {
             channel.writeAndFlush(buf).addListener(new ChannelFutureListener() {
                 @Override
                 public void operationComplete(ChannelFuture channelFuture) throws Exception {
-                    listener.isSendSuccess(channelFuture.isSuccess());
+                    if(listener!=null){
+                        listener.isSendSuccess(channelFuture.isSuccess());
+                    }
                 }
             });
         }
