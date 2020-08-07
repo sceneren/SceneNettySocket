@@ -125,6 +125,14 @@ public class NettyTcpClient {
         return isSendHeartBeat;
     }
 
+    public void setSendHearBeat(boolean isSendHeartBeat) {
+        this.isSendHeartBeat = isSendHeartBeat;
+    }
+
+    public void setHeartBeatData(String heartBeatData) {
+        this.heartBeatData = heartBeatData;
+    }
+
     public void connect() {
         if (isConnecting) {
             return;
@@ -205,7 +213,7 @@ public class NettyTcpClient {
                     e.printStackTrace();
                 } finally {
                     isConnect = false;
-                    if(listener!=null){
+                    if (listener != null) {
                         listener.onClientStatusConnectChanged(ConnectState.STATUS_CONNECT_CLOSED, mIndex);
                     }
                     if (null != channelFuture) {
@@ -298,7 +306,7 @@ public class NettyTcpClient {
             channel.writeAndFlush(buf).addListener(new ChannelFutureListener() {
                 @Override
                 public void operationComplete(ChannelFuture channelFuture) throws Exception {
-                    if(listener!=null){
+                    if (listener != null) {
                         listener.isSendSuccess(channelFuture.isSuccess());
                     }
                 }

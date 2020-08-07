@@ -85,7 +85,10 @@ public class NettyClientHandler extends SimpleChannelInboundHandler<String> {
     @Override
     public void channelActive(ChannelHandlerContext ctx) {
         Log.e(TAG, "channelActive");
-        listener.onClientStatusConnectChanged(ConnectState.STATUS_CONNECT_SUCCESS, index);
+        ctx.channel().config().setWriteBufferHighWaterMark(10 * 1024 * 1024);
+        if (listener != null) {
+            listener.onClientStatusConnectChanged(ConnectState.STATUS_CONNECT_SUCCESS, index);
+        }
     }
 
     /**
